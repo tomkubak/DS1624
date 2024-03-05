@@ -1,26 +1,35 @@
-#pragma once
+#include "esphome.h"
+using namespace esphome;
 
-#include "esphome/core/component.h"
-#include "esphome/core/log.h"
-#include "esphome/core/helpers.h"
-#include "esphome/components/i2c/i2c.h"
+class DS1624Sensor : public PollingComponent, public sensor::Sensor {
+ public:
+  // Konstruktor pro sensor, nastaví interval aktualizace na 15 sekund
+  DS1624Sensor() : PollingComponent(15000) {}
 
-class DS1624 : public Component {
-public:
-  void set_address(uint8_t address) { address_ = address; }
+  void setup() override {
+    // Inicializace I2C nebo specifické nastavení pro DS1624
+  }
 
-  void setup() override;
-  void loop() override;
+  void update() override {
+    // Zde získáte data z senzoru a odesíláte je
+    uint8_t temperature_raw[2];
+    if (!read_i2c(0x48, temperature_raw, 2)) { // Předpokládejme, že 0x48 je I2C adresa DS1624
+      ESP_LOGD("DS1624", "Failed to read temperature");
+      return;
+    }
 
-  float get_temperature() const { return temperature_; }
-  bool is_valid() const { return temperature_valid_; }
+    float temperature = convert_raw_temperature(temperature_raw);
+    publish_state(temperature);
+  }
 
-protected:
-  I2CComponent *i2c_;
-  uint8_t address_;
-  float temperature_{0.0};
-  bool temperature_valid_{false};
+ private:
+  bool read_i2c(uint8_t address, uint8_t *data, uint8_t len) {
+    return Wire.requestFrom(address, len) == len && Wire.readBytes(data, len) == len;
+  }
 
-  void init();
-  float read_converted_value();
+  float convert_raw_temperature(uint8_t *temperature_raw) {
+    // Toto je jen ukázková funkce, musíte ji nahradit správným převodem
+    // získaných surových dat na teplotu pro DS1624
+    return static_cast<float>(temperature_raw[0]);
+  }
 };
