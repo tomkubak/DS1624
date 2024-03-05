@@ -9,16 +9,12 @@ from esphome.const import (
     UNIT_CELSIUS,
 )
 
-CONF_DS1624_ID = "ds1624_id"
-CONF_UPDATE_INTERVAL = "update_interval"
-CONF_ADDRESS = "address"
-
 ds1624_ns = cg.esphome_ns.namespace("ds1624")
 DS1624Temperature = ds1624_ns.class_("DS1624Temperature", sensor.Sensor, cg.Component)
 
 CONFIG_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(CONF_DS1624_ID): cv.declare_id(DS1624Temperature),
+        cv.GenerateID(): cv.declare_id(DS1624Temperature),
         cv.Optional(CONF_UPDATE_INTERVAL, default="15s"): cv.positive_time_period_milliseconds,
         cv.Optional(CONF_ADDRESS, default=0x48): cv.hex_uint8_t,
     }
@@ -26,8 +22,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 async def to_code(config):
-    var = cg.new_Pvariable(config[CONF_DS1624_ID])
-    await cg.register_component(var, config)
+    var = cg.new_Pvariable(config[CONF_ID])
     await sensor.register_sensor(var, config)
 
     cg.add(var.set_update_interval(config[CONF_UPDATE_INTERVAL]))
