@@ -10,7 +10,7 @@ ds1624_ns = cg.esphome_ns.namespace('sensor').namespace('ds1624')
 
 DS1624Sensor = ds1624_ns.class_('DS1624Sensor', sensor.Sensor, cg.Component)
 
-CONFIG_SCHEMA = sensor.sensor_schema(UNIT_EMPTY, ICON_EMPTY, 1).extend({
+CONFIG_SCHEMA = sensor.sensor_schema().extend({
     cv.GenerateID(): cv.declare_id(DS1624Sensor),
 }).extend(cv.polling_component_schema()).extend({
     cv.GenerateID(): cv.declare_id(DS1624.DS1624),
