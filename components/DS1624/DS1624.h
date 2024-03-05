@@ -1,20 +1,26 @@
 #pragma once
 
 #include "esphome/core/component.h"
-#include "esphome/core/hal.h"
-#include "esphome/components/sensor/sensor.h"
+#include "esphome/core/log.h"
+#include "esphome/core/helpers.h"
+#include "esphome/components/i2c/i2c.h"
 
-namespace esphome {
-namespace ds1624 {
+class DS1624 : public Component {
+public:
+  void set_address(uint8_t address) { address_ = address; }
 
-class DS1624 : public sensor::Sensor, public Component {
- public:
   void setup() override;
-  void update() override;
-  
- protected:
-  float readTemperature();
-};
+  void loop() override;
 
-}  // namespace ds1624
-}  // namespace esphome
+  float get_temperature() const { return temperature_; }
+  bool is_valid() const { return temperature_valid_; }
+
+protected:
+  I2CComponent *i2c_;
+  uint8_t address_;
+  float temperature_{0.0};
+  bool temperature_valid_{false};
+
+  void init();
+  float read_converted_value();
+};
