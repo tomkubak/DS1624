@@ -1,28 +1,40 @@
 #include "DS1624.h"
+#include <Wire.h>
+
+namespace esphome {
+namespace ds1624 {
 
 void DS1624::setup() {
-  Wire.begin();
+  Wire.begin(); // Inicializace I2C
+}
+
+void DS1624::update() {
+  float temperature = readTemperature();
+  publish_state(temperature);
 }
 
 float DS1624::readTemperature() {
-  Wire.beginTransmission(0x48);
-  Wire.write(0xAA); // Command to start temperature conversion
+  Wire.beginTransmission(0x48); // Adresa čipu DS1624 na I2C sběrnici
+  Wire.write(0xAA); // Příkaz pro spuštění konverze teploty
   Wire.endTransmission();
-  delay(20); // Wait for conversion to finish
+  delay(20); // Čekání na dokončení konverze
 
   Wire.beginTransmission(0x48);
-  Wire.write(0xAA); // Command to read temperature
+  Wire.write(0xAA); // Příkaz pro čtení teploty
   Wire.endTransmission();
   
-  Wire.requestFrom(0x48, 2); // Request 2 bytes of temperature data
+  Wire.requestFrom(0x48, 2); // Požadavek na čtení 2 bytů teplotních dat
   if (Wire.available() >= 2) {
     uint8_t msb = Wire.read();
     uint8_t lsb = Wire.read();
-    int16_t rawTemperature = (msb << 8) | lsb;
-    if (rawTemperature & 0x8000) {
-      rawTemperature = -(~rawTemperature + 1);
+    int16_t raw_temperature = (msb << 8) | lsb;
+    if (raw_temperature & 0x8000) {
+      raw_temperature = -(~raw_temperature + 1);
     }
-    return rawTemperature * 0.0625; // Each bit represents 0.0625 degrees Celsius
+    return raw_temperature * 0.0625; // Každý bit reprezentuje 0.0625 stupně Celsia
   }
-  return -1000; // Return an invalid value if reading failed
+  return NAN; // Pokud se nepodaří přečíst teplotu, vrátíme NAN
 }
+
+}  // namespace ds1624
+}  // namespace esphome
